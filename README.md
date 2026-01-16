@@ -288,9 +288,51 @@ $: ansible-playbook -i hosts my-playbook.yaml
 ```
 
 ## Modules Overview
+Modules
+- ALso reffered to as "task plugins"
+- Ansible executes a module usually on remote server.
+- And collects return values.
 
+## Ansible Collections
+### what is a collection?
+- A packaging format for bundling and distributing ansible content.
+- Can be released and installed independent of other collections.
+- All modules are part of collection.
+## Ansible plugins
+- Pieces of code that add to ansible's functionality or modules.
+- you can also write own plugins.
+## Ansible Galaxy
+-Where we can store our collections and it's like a collection hub.
 
-   
+##Create Own Collection
+- For bigger ansible projects
+- Collections follow a simple data structure
+  - Required:
+     a galaxy.yml file (containing metadata) at the root level of collection.
+```bash
+
+    collection/
+├── docs/
+├── galaxy.yml
+├── meta/
+│   └── runtime.yml
+├── plugins/
+│   ├── modules/
+│   │   └── module1.py
+│   ├── inventory/
+│   └── ...
+├── README.md
+├── roles/
+│   ├── role1/
+│   ├── role2/
+│   └── ...
+├── playbooks/
+│   ├── files/
+│   ├── vars/
+│   ├── templates/
+│   └── tasks/
+└── tests/
+```   
 
 
 
