@@ -334,6 +334,106 @@ Modules
 └── tests/
 ```   
 
+## Variables in ansible
+
+## Naming of Variables:
+
+- Not Valid: Python Keywords, such as sync Playbook keywords, such as environment.
+- Valid: letters, numbers and underscores
+- should always start with a letter
+- DON't: linux-name, linux name, linux.name or 12 
+
+#### Registered Variables
+- Create variables from the output of an ansible task
+- this variable can be used in any later tasks in your play.
+e.g.
+```bash
+- name: Ensure app is running
+  shell: ps aux | grep node
+  register: app_status
+- debug: msg={{app_status.stdout_lines}}
+```
+
+### Common return values
+- e.g. "changed" = indicating if the task has to make changes
+
+#### Parameterize your playbook
+###Referencing Variables
+- using double curly braces
+- if you start a value with {{value}} , you must quote the whole expression to create valid YAML Syntax.
+
+```bash
+Before:
+
+src: /usr/downloads/xyz.1.0.0.tgz
+
+After:
+if you are using initial with variable you need to enclose with double quotes
+src: "{{node-app-location}}"
+or
+src: "{{location}}/xyz.1.0.0.tgz"
+if you are using variable inside a path you don't need to enclose with double quotes
+
+src: /usr/downloads/xyz.{{version}}.tgz
+
+```
+### Variables defined in a playbook 
+
+Setting vars directly in playbook
+
+```bash
+1st method:
+vars:
+  - location: /usr/downloads
+  - version: 1.0.1
+  - node-app-location: /usr/downloads/xyz.1.0.0.tgz
+
+```
+### Passing variables On the command line
+Setting vars at the command line
+
+```bash
+$: anisble-playbook -i hosts deploy-node.yml --extra-vars(it is euivalent to -e) "version: 1.0.1 location: /usr/downloads "
+$: anisble-playbook -i hosts deploy-node.yml -e "version=1.0.1 location=/usr/downloads "
+```
+
+## External variables file
+setting vars in an external variables file
+- Variable file uses YAML Syntax
+- so you can call it "project-vars.yaml"
+
+```bash
+project-vars file
+version: 1.0.1
+location: /usr/downloads
+
+## We have to call this in each play
+vars_files:
+  - project-vars
+```
+
+## Git & Default inventory
+
+Setup Git Project
+- Create a git repository
+- your playbooks should be stored safely in this remote repo
+- Git repo is your "Single source of truth" for your ansible playbooks
+- Great for working in teams
+
+## Instead of using hosts in command use the below in ansible.cfg
+```bash
+
+$: mkdir ansible.cfg
+[defaults]
+host_key_checking = False
+inventory = hosts
+
+then use command : ansible-playbook deploy-node.yaml
+```
+
+## Ansible & Terraform
+#### Integrate Ansible Playbook Execution in Terraform.
+
 
 
 
