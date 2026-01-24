@@ -1,0 +1,50 @@
+# Terraform with Ansible
+
+at the end of terraform file related to server provisioning add the below provisioner.
+
+```bash
+provider "aws" {
+provisioner "local-exec" {
+  working_dir = "../ansible"
+  command = "ansible-playbook --inventory ${self.public_ip}, --private-key ${var.ssh_key_private} --user ec2-user deploy-docker-new-user.yaml"
+}
+}
+
+```
+
+The drawback of provisioner is it's automatically executed, whenever we run the terraform apply command and it doesn't wait either ec2 instance is created or not. so to overcome this we need to add below lines in ansible file to wait until ec2 instance is created.
+
+```bash
+----
+- name: Wait for ssh connection
+  hosts: all
+  gather_facts: False
+  tasks:
+    - name: Ensure ssh port open
+      wait_for:
+         port: 22
+         delay: 10
+         timout: 100
+         search-regex: OpenSSH
+         host: '{{(ansible_ssh_host|default(ansible_host)) |default(inventory_hostname) }}'
+        vars:
+          ansible_connection: local
+          ansible_python_interpreter: /usr/bin/python
+
+```
+ or use this 2nd method, completely a new task from the terraform
+
+provider "aws" {
+---
+}
+
+resource "null_resource" "configure_server" {
+  triggers = {
+    trigger = aws_instance.myapp-server.public_ip
+  }
+  provisioner "local-exec" {
+    working_dir = "../ansible"
+    command = "ansible-playbook --inventory ${aws_instance.myapp-server.public_ip}, --private-key ${var.ssh_key_private} --user ec2-user deploy-docker-new-user.yaml"
+  }
+}
+
