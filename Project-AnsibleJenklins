@@ -1,7 +1,0 @@
-## Project-Ansible Integration in jenkins
-
-Demo Overview:
-1) Create a do server for jenkins.
-2) Create a dedicated server for ansible.
-3) Install ansible on that server
-4) Execute Ansible Playbook from jenkins file to configure 2 EC2 Instances.
