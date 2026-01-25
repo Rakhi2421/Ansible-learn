@@ -431,8 +431,127 @@ inventory = hosts
 then use command : ansible-playbook deploy-node.yaml
 ```
 
-## Ansible & Terraform
-#### Integrate Ansible Playbook Execution in Terraform.
+## Dynamic Inventory
+
+- Managing an inventory, which fluctuates over time.
+- Hosts spinning up and shutting down all the time.
+- E.g. autp-scaling to accomodate for business needs.
+
+## Configuring dynamic inventory
+Working with dynamic inventory. 
+Ansible supports two ways to connect with external inventory.
+- Inventory plugins
+- Inventory scripts
+
+Plugins over scripts
+
+- Inventory plugins make use of ansible features
+- Inventory plugins are written in yaml.
+- Inventory scripts are written in python.
+
+Plugins/Scripts specific to infrastructure provider
+
+- you can use "ansible-doc -t inventory -l" to see list of plugins
+- For AWS Infrastructure , You need a specific plugin/script for AWS.
+
+For EC2 inventory source
+
+- Config file must end with "aws_ec2.yaml"
+
+```bash
+In ansible.cfg
+enable_plugins = aws_ec2
+
+Create new file
+inventory_aws_ec2.yaml
+---
+plugin: aws_ec2
+regions:
+   - eu-west-3
+
+Execute the below command
+$: ansible-inventory -i inventory_aws_ec2.yaml --list
+
+If we want only server details , this will provide private dns of the servers.
+$: ansible-inventory -i inventory_aws_ec2.yaml --graph
+
+If we want to know the public dns of the servers.
+
+In Terraform aws_vpc resource , we have to add the below line to enable public dns for the servers, which are going to be created.
+enable_dns_hostnames = true and create the servers again.
+
+$: ansible-inventory -i inventory_aws_ec2.yaml --graph
+```
+
+Configure ansible to use dynamic inventory
+```bash
+In ansible.cfg file add the below 2 lines.
+
+remote_user = ec2-user
+private_key_file = ~/.ssh/id_rsa
+
+In playbook at hosts use aws_ec2
+hosts: aws_ec2
+
+
+$: ansible-playbook -i inventory_aws_ec2.yaml deploy-docker-new-user.yaml
+
+If you don't want to pass the parameter inventory_aws_ec2.yaml, add the below line in ansible.cfg
+inventory = inventory_aws_ec2.yaml
+
+$: ansible-playbook  deploy-docker-new-user.yaml
+
+```
+Target only specific servers
+
+In Inventory_aws_ec2.yaml file, add the below lines to filter the servers based on tag name
+
+```bash
+inventory_aws_ec2.yaml
+---
+plugin: aws_ec2
+regions:
+   - eu-west-3
+filters:
+  tag:Name: dev*
+  instance-state-name: running
+```
+
+Create Dynamic groups
+
+If you want to groups based on tags like dev and prod do the below
+
+```bash
+inventory_aws_ec2.yaml
+---
+plugin: aws_ec2
+regions:
+   - eu-west-3
+keyed_groups:
+  - key: tags
+    prefix: "tag"
+
+In playbook at hosts sec , mention the tag instead of aws_ec2 plugin
+
+hosts: tag_Name_dev_server
+
+If you want to group the serers based on instance type.
+inventory_aws_ec2.yaml
+---
+plugin: aws_ec2
+regions:
+   - eu-west-3
+keyed_groups:
+  - key: tags
+    prefix: tag
+  - key: instance_type
+    prefix: instance_type
+
+
+```
+
+
+ 
 
 
 
